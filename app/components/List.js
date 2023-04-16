@@ -1,29 +1,11 @@
-import React, {useEffect, useState} from 'react'
+import React from 'react'
 import Button from "react-bootstrap/cjs/Button";
 
 
-const List = ({mps, dataUser,  setEmailData,  setShowFindForm, setShowEmailForm, clientId}) => {
-    const [tweet, setTweet] = useState(``)
-    const fetchData = async () => {
-        const requestOptions = {
-            method: 'POST',
-            redirect: 'follow'
-        }
-        const data = await fetch(`https://payload-demo-tpm.herokuapp.com/tweets/?clientId=${clientId}`, requestOptions);
-        const datos = await data.json()
-        //console.log(datos.data, 'datos.data-tweet')
-        const textoTweet = datos.data?.docs[0] ? datos.data?.docs[0].Message : ' '
-        setTweet(textoTweet)
-    }
-    
-    useEffect(() => {
-        fetchData()
-        .catch((error)=>console.error(error))
-        
-        //console.log(tweet, 'tweet state en useeffect')
-    },[])
+const List = ({mps, dataUser,  setEmailData,  setShowFindForm, setShowEmailForm, tweet}) => {
+
     const tweetText = `.${mps.twitter} ${tweet}`
-    //console.log(tweetText)
+    // console.log(tweetText)
     const click = e => {
         e.preventDefault()
         setEmailData({
@@ -32,6 +14,7 @@ const List = ({mps, dataUser,  setEmailData,  setShowFindForm, setShowEmailForm,
         })
         setShowEmailForm(false)
         setShowFindForm(true)
+        
     }
     return (
         <div className={'buttonsContainer'}>

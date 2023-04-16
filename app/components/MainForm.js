@@ -17,7 +17,7 @@ import {Link, animateScroll as scroll} from "react-scroll";
 
 
 
-const MainForm = ({dataUser, setDataUser, mp, setMp, setEmailData, emailData, clientId, states}) => {
+const MainForm = ({dataUser, setDataUser, mp, setMp, setEmailData, emailData, clientId, states, tweet}) => {
     const [showLoadSpin, setShowLoadSpin] = useState(false)
     const [showList, setShowList] = useState(true)
     const [showFindForm, setShowFindForm] = useState(false)
@@ -238,6 +238,7 @@ const MainForm = ({dataUser, setDataUser, mp, setMp, setEmailData, emailData, cl
                                     mps={mps}
                                     clientId={clientId}
                                     key={index}
+                                    tweet={tweet}
                                 />)  
                             ): <Alert variant='danger'>No se han encontrado representantes con el código postal que nos ha proveído</Alert> }
                         </div>
