@@ -1,23 +1,18 @@
+'use client'
 import React, {useEffect, useState} from 'react';
 import Loader from "react-loader-spinner";
 import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/cjs/Button";
 import Alert from "react-bootstrap/Alert";
-//import axios from "axios";
 import List from './List'
 import mainimage from '../assets/laptop-with-notebook-and-glasses-on-table.jpg';
-//import icon from '../assets/tw.png'
 import EmailForm from "./EmailForm";
 import ThankYou from "./ThankYou";
 import Card from "react-bootstrap/cjs/Card";
 import {Link, animateScroll as scroll} from "react-scroll";
-//import {io} from "socket.io-client"
-//import mps from '../assets/mps';
-//import estates from '../assets/estates'
+import { fetchRepresentatives } from '../assets/petitions/fetchRepresentatives';
 
-
-
-const MainForm = ({dataUser, setDataUser, mp, setMp, setEmailData, emailData, clientId, states, tweet}) => {
+const MainForm = ({dataUser, setDataUser, mp, setMp, setEmailData, emailData, clientId, states, tweet, typData, mainData, backendURLBase, endpoints, backendURLBaseServices}) => {
     const [showLoadSpin, setShowLoadSpin] = useState(false)
     const [showList, setShowList] = useState(true)
     const [showFindForm, setShowFindForm] = useState(false)
@@ -25,10 +20,7 @@ const MainForm = ({dataUser, setDataUser, mp, setMp, setEmailData, emailData, cl
     const [validated, setValidated] = useState(false);
     const [error, setError] = useState(false)
     const [showThankYou, setShowThankYou] = useState(true)
-    const [mainData, setMainData] = useState({})
     const [tac, setTac] = useState(false)
-    // const payloadURL = 'https://payload-demo-tpm.herokuapp.com'
-    // const socket = io(payloadURL);
 
     const handleTerms = (e) => {
         if (e.target.checked === true) {
@@ -44,22 +36,20 @@ const MainForm = ({dataUser, setDataUser, mp, setMp, setEmailData, emailData, cl
             ...dataUser,
             [e.target.name]: e.target.value
         })
-        //console.log(e.target.value)
-        //console.log(dataUser)
+
     }
     const { state, emailUser } = dataUser;
 
     const click = async e => {
         e.preventDefault();
-        // load spin
-        //validation form -->
+
         const form = e.currentTarget;
         if (form.checkValidity() === false) {
             e.preventDefault();
             e.stopPropagation();
         }
         setValidated(true);
-        if (//firstName.trim() === '' || lastName.trim() === '' || //
+        if (
         tac === false || state.trim() === '' || emailUser.trim() === '') {
             
             setError(true)
@@ -68,77 +58,41 @@ const MainForm = ({dataUser, setDataUser, mp, setMp, setEmailData, emailData, cl
         
         setShowLoadSpin(true)
         setError(false)
-//---> ends validation form
-        const randomId = 'asldhjkasjdlkdsaj'
-        dataUser.id = randomId;
-        const requestOptions = {
-            method: 'GET',
-            redirect: 'follow'
-          };
-        fetch(`https://payload-demo-tpm.herokuapp.com/representatives-state/?clientId=${clientId}&state=${dataUser.state}`, requestOptions)
-        .then(response => response.json())
-        .then(result => {
-            setMp(result.data)
-            setShowLoadSpin(false)
-            setShowList(false)
-
-        } )
+        fetchRepresentatives('GET',backendURLBase, endpoints.teGetRepresentativesPerStates, clientId, `&state=${dataUser.state}`, setMp, setShowLoadSpin, setShowList)        
         .catch(error => console.log('error', error));
-        //const response = await axios.post(`https://sendemail-service.herokuapp.com/sendtwit`, {dataUser})
-      //  const dataPayload = await response.data.data
-      //  const getMp = await response.data.getMp
-        
-        
-        //setMp(mps) //setMp(getMp)
+
 
 
         scroll.scrollToBottom();
     }
-    const fetchData = async () => {
-        const requestOptions = {
-            method: 'POST',
-            redirect: 'follow'
-        }
-        const data = await fetch(`https://payload-demo-tpm.herokuapp.com/main-content/?clientId=${clientId}`, requestOptions);
-        const datos = await data.json()
-        //console.log(datos.data, 'datos.data')
-        setMainData(datos);
-        //console.log(mainData)
-      }
-    useEffect(() => {
-        fetchData()
-        .catch((error)=>console.error(error))
-
-    //console.log(mainData)
-    },[])
-    //console.log(dataUser)
-    //console.log(mp, 'log de estado mp')
-    //console.log(mainData, 'mainData fuera antes del return')
+    
+   
     if(!mainData) return 'loading datos'
     if(!mp) return 'loading datos'
+    console.log('Main page data', mainData)
+            console.log('Email data', dataUser)
+            console.log('States data', states)
+            console.log('tweets', tweet)
+            console.log('TYPdata', typData)
     return (
 
         <div className={'contenedor main-form-flex-container'} >
-            <div>
-                {/*<img style={{margin: '20px', maxHeight: '50px', maxWidth: '50px', height: '100%', width: '100px'}}*/}
-                {/*     src={icon}/>*/}
-            </div>
             <Card className="bg-dark card-img text-white main-image-container">
-                <Card.Header className='card-img'  style={{ backgroundImage: `url(${mainData.data?.docs[0] ? mainData.data?.docs[0].backgroundImage?.sizes.card.url : mainimage })`, backgroundPosition: 'center', backgroundSize: 'cover' } } 
+                <Card.Header className='card-img'  style={{ backgroundImage: `url(${ mainData.mainImg })`, backgroundPosition: 'center', backgroundSize: 'cover' } } 
                      alt={'header'}/>
                      <Card.ImgOverlay className={'card-img-overlay'}>
                          <Card.Body>
                          <Card.Text className={'text'} >
-                                 {mainData.data?.docs[0] ? mainData.data?.docs[0].mainTitle : 'Por favor introduzca un título en su dashboard'}
+                                 { mainData.title}
                          </Card.Text>
                              <Card.Text className={'text2'} >
-                             {mainData.data?.docs[0] ? mainData.data?.docs[0].mainSubtitle : 'Por favor introduzca un subtítulo en su dashboard'}
+                             { mainData.subtitle}
                              </Card.Text>
                          </Card.Body>
                      </Card.ImgOverlay>
             </Card>
             <div className={'container instructions' } >
-                {mainData.data?.docs[0] ? mainData.data?.docs[0].instructions : 'Por favor introduzca un texto de intrucción en su dashboard'}
+                { mainData.instruction}
             </div>
             <div className={'form-container'}>
                 <div hidden={showFindForm} className={'container container-content'} >
@@ -155,31 +109,21 @@ const MainForm = ({dataUser, setDataUser, mp, setMp, setEmailData, emailData, cl
                     >
                     </Link>
                     <Form onSubmit={click} noValidate validated={validated}>
-                        <h3 className='find-her-mp-text'>Encuentre aquí a su representante local:</h3>
+                        <h3 className='find-her-mp-text'>{mainData.firstFormLabel1}</h3>
                         <Form.Group>
                             <Form.Control
                                 type="email"
-                                placeholder="Introduzca su correo electrónico"
+                                placeholder={mainData.firstFormPlaceholder1}
                                 name="emailUser"
                                 onChange={handleChange}
                                 required
                             />
                         </Form.Group>
-                        {/* <Form.Group >
-                            <Form.Control
-                                type="text"
-                                placeholder="Escriba el nombre de su estado y presione ENTER"
-                                name="state"
-                                onChange={handleChange}
-                                required
-                                //maxLength="4"
-                            />
-                        </Form.Group> */}
                         <Form.Group>
-                            <p className='select-label'>Por favor seleccione su estado</p>
+                            <p className='select-label'>{mainData.firstFormLabel2}</p>
                             <Form.Select className='select-styles-form' aria-label="DefaulValue" required name ='state' onChange={handleChange}
                                 >
-                                <option key={'vacio'} value={''}>Selecciona tu estado</option>
+                                <option key={'vacio'} value={''}>{mainData.firstFormPlaceholder2}</option>
                                 {
                                     states.sort().map((estate)=>(
                                         <option key={estate} value={estate} >{estate}</option>
@@ -193,9 +137,7 @@ const MainForm = ({dataUser, setDataUser, mp, setMp, setEmailData, emailData, cl
                             onClick={handleTerms}
                             required
                             label={
-                                <a target={"_blank"} rel={"noreferrer"} href={mainData.data?.docs[0]
-                                ? mainData.data?.docs[0].terms
-                                : "Please enter a url on your dashboard"}> Accepto los terminoss y condiciones</a>
+                                <a target={"_blank"} rel={"noreferrer"} href={mainData.termsAndConditionsURL}> {mainData.termsAndConditionsTxt}</a>
                             }
                             />
                         </Form.Group>
@@ -207,7 +149,7 @@ const MainForm = ({dataUser, setDataUser, mp, setMp, setEmailData, emailData, cl
                                 onClick={click}
                                 className={'u-full-width capitalize-style find-btn-main-form'}
                             >
-                                {mainData.data?.docs[0]  ? mainData.data?.docs[0]['Find Button'] : 'Find your representative'}
+                                {mainData.findBtnText}
                             </Button>
                         </Form.Group>
                         {showLoadSpin ? <Loader
@@ -216,16 +158,15 @@ const MainForm = ({dataUser, setDataUser, mp, setMp, setEmailData, emailData, cl
                             color="#000000"
                             height={100}
                             width={100}
-                            timeout={10000} //10 secs
+                            timeout={10000} 
                         /> : null }
                     </Form>
 
                     <div className={'container senators-container'} hidden={showList}>
                         <div className='note-container'>
-                            <p>NOTA: Escoja solamente a un representante a la vez.
-                                Si ustede desea contactar a otro representante, o enviar más emails al mismo, deberá seleccionar la opción de repetir después de enviar el correo</p>
+                            <p>{mainData.note}</p>
                         </div>
-                        <h2>Representantes</h2>
+                        <h2>{mainData.positionName}</h2>
                         <div className='representatives-container'>
                             {mp.length > 0 ? mp.map((mps, index) => (
                                 <List
@@ -240,7 +181,7 @@ const MainForm = ({dataUser, setDataUser, mp, setMp, setEmailData, emailData, cl
                                     key={index}
                                     tweet={tweet}
                                 />)  
-                            ): <Alert variant='danger'>No se han encontrado representantes con el código postal que nos ha proveído</Alert> }
+                            ): <Alert variant='danger'>No representatives have been found with the state that has provided us</Alert> }
                         </div>
                     </div>
                     
@@ -256,6 +197,10 @@ const MainForm = ({dataUser, setDataUser, mp, setMp, setEmailData, emailData, cl
                 setEmailData={setEmailData}
                 setDataUser={setDataUser}
                 clientId={clientId}
+                endpoints={endpoints}
+                backendURLBase={backendURLBase}
+                backendURLBaseServices={backendURLBaseServices}
+                mainData={mainData}
             />
             <ThankYou
                 emailData={emailData}
@@ -264,6 +209,7 @@ const MainForm = ({dataUser, setDataUser, mp, setMp, setEmailData, emailData, cl
                 setShowFindForm={setShowFindForm}
                 setShowThankYou={setShowThankYou}
                 clientId={clientId}
+                typData={typData}
                 showThankYou={showThankYou}/>
            
         </div>

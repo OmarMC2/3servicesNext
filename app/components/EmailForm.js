@@ -5,11 +5,12 @@ import Form from "react-bootstrap/Form";
 
 import InputGroup from "react-bootstrap/InputGroup"
 import Col from "react-bootstrap/cjs/Col";
-import axios from "axios";
 import Alert from "react-bootstrap/Alert";
 import Loader from "react-loader-spinner";
+import { fetchData } from '../assets/petitions/fetchData';
+import {fetchLeads} from '../assets/petitions/fetchLeads';
 
-const EmailForm = ({setShowThankYou, setShowFindForm, dataUser, setDataUser, showEmailForm, setShowEmailForm, emailData, setEmailData, clientId}) => {
+const EmailForm = ({setShowThankYou, setShowFindForm, dataUser, setDataUser, showEmailForm, setShowEmailForm, emailData, setEmailData, clientId, backendURLBase, endpoints, backendURLBaseServices, mainData}) => {
     const [validated, setValidated] = useState(false);
     const [error, setError] = useState(false)
     const [showLoadSpin, setShowLoadSpin] = useState(false)
@@ -25,10 +26,7 @@ const EmailForm = ({setShowThankYou, setShowFindForm, dataUser, setDataUser, sho
             [e.target.name]: e.target.value.replace(/\n\r?/g, '<br/>' ).replace(/#/g, " ")
         })
     }
-    const {userName} = dataUser
-    const correoEnviado = (respuestaDeExito, dataUseryEmail) =>{
-        axios.post(`https://payload-demo-tpm.herokuapp.com/leads?&firstName=${dataUser.userName ? dataUser.userName:''}&postalcode=${dataUser.zipCode ? dataUser.zipCode:dataUser.state}&emailData=${dataUser.emailUser}&representative=${emailData.name}&emailMessage=${dataUser.text}&city=${emailData.state}&party=${emailData.party}&clientId=${clientId}&sended=${respuestaDeExito}`, dataUseryEmail)
-    }
+    const {userName, text, subject } = dataUser
     const send = async e => {
         e.preventDefault()
         const form = e.currentTarget;
@@ -37,24 +35,24 @@ const EmailForm = ({setShowThankYou, setShowFindForm, dataUser, setDataUser, sho
             e.stopPropagation();
         }
         setValidated(true);
-        if (//firstName.trim() === '' || lastName.trim() === '' || //
-            userName.trim() === '') {
-            setError(true)
-            return
-        }
+        if (
+            userName.trim() === '' || 
+            text.trim() === '' || 
+            subject.trim() === '') {
+                setError(true)
+                return
+            }
         setError(false)
-        //const name = dataUser.userName.split(' ')
-        //console.log(dataUser.text.replace(/\n\r?/g, "<br/>"))
-        const payload = await axios.post(`https://payload-demo-tpm.herokuapp.com/send-email?to=${emailData.contact}&subject=${dataUser.subject}&firstName=${dataUser.userName}&emailData=${dataUser.emailUser}&text=${dataUser.text.replace(/\n\r?/g, "<br/>")}`)
-        await setShowLoadSpin(false)
-        if (payload.status === 200) {
-            correoEnviado('Si',{dataUser, emailData})
+        const payload = await fetchData('GET', backendURLBaseServices, endpoints.toSendEmails, clientId, `to=${emailData.contact}&subject=${dataUser.subject}&firstName=${dataUser.userName}&emailData=${dataUser.emailUser}&text=${dataUser.text.replace(/\n\r?/g, "<br/>")}` )
+        console.log(payload.success)
+        setShowLoadSpin(false)
+        if (payload.success === true) {
+            fetchLeads(true, backendURLBase, endpoints, clientId, dataUser, emailData)
             setShowEmailForm(true)
             setShowThankYou(false)
-            dataUser.id = ''
         }
-        if(payload.status !== 200){
-        correoEnviado('No', {dataUser, emailData})
+        if(payload.success !== true){
+        fetchLeads(false, backendURLBase, endpoints, clientId, dataUser, emailData)
         
             return (
                 <Alert>
@@ -74,12 +72,11 @@ const EmailForm = ({setShowThankYou, setShowFindForm, dataUser, setDataUser, sho
         setShowFindForm(false)
         setShowEmailForm(true)
     }
-    //console.log('emailData',emailData)
-    //console.log(dataUser, 'data user')
+
     return (
         <div className={'emailContainer'} hidden={showEmailForm}>
             {error ? <Alert variant={'danger'}>
-                Todos lo campos son necesarios, por favor introduzca los faltantes.
+            All fields are required, please fill in the missing ones.
             </Alert> : null}
             <Form onSubmit={send} noValidate validated={validated}>
                 <div className={'formEmail'}>
@@ -87,11 +84,11 @@ const EmailForm = ({setShowThankYou, setShowFindForm, dataUser, setDataUser, sho
                         <Form.Group
                             controlId="name">
                             <Form.Label>
-                                *Primer nombre y apellido
+                                {mainData.emailFormUserNameLabel}
                             </Form.Label>
                             <Form.Control
                                 type="text"
-                                placeholder="Name"
+                                placeholder={mainData.emailFormUserNamePlaceholder}
                                 name="userName"
                                 onChange={handleChange}
                                 required
@@ -102,7 +99,7 @@ const EmailForm = ({setShowThankYou, setShowFindForm, dataUser, setDataUser, sho
                         <Form.Group
                             controlId="email">
                             <Form.Label>
-                                *Email
+                                {mainData.emailFormUserLabel}
                             </Form.Label>
                             <Form.Control
                                 type="email"
@@ -116,7 +113,7 @@ const EmailForm = ({setShowThankYou, setShowFindForm, dataUser, setDataUser, sho
                 </div>
                 <Col>
                     <Form.Label>
-                        PARA: INFORMACIÓN DEL REPRESENTANTE
+                        {mainData.emailFormInfoRepLabel}
                     </Form.Label>
                 </Col>
                 <div className={'formEmail'}>
@@ -125,7 +122,7 @@ const EmailForm = ({setShowThankYou, setShowFindForm, dataUser, setDataUser, sho
                             <Form.Control
                                 as={'input'}
                                 readOnly
-                                type="text"
+                                type="text"s
                                 placeholder={emailData.name}
                                 name="nameTo"
                             />
@@ -157,7 +154,7 @@ const EmailForm = ({setShowThankYou, setShowFindForm, dataUser, setDataUser, sho
                     <Col>
                         <Form.Group>
                             <Form.Label>
-                                ASUNTO:
+                                {mainData.emailFormSubjectPlaceholder}
                             </Form.Label>
                             <Form.Control
                                 onChange={handleChange}
@@ -165,6 +162,7 @@ const EmailForm = ({setShowThankYou, setShowFindForm, dataUser, setDataUser, sho
                                 type="text"
                                 name="subject"
                                 defaultValue={dataUser.subject}
+                                required
                             />
                         </Form.Group>
                     </Col>
@@ -177,6 +175,7 @@ const EmailForm = ({setShowThankYou, setShowFindForm, dataUser, setDataUser, sho
                             defaultValue={dataUser.text}
                             onChange={handleChange}
                             name="text"
+                            required
                         />
                     </Form.Group>
                 </Col>
@@ -186,7 +185,7 @@ const EmailForm = ({setShowThankYou, setShowFindForm, dataUser, setDataUser, sho
                     color="#000000"
                     height={100}
                     width={100}
-                    timeout={5000} //5 secs
+                    timeout={5000} 
                 />
             </Form>
             <div className={'container buttons-container-email-form'}>
@@ -195,13 +194,13 @@ const EmailForm = ({setShowThankYou, setShowFindForm, dataUser, setDataUser, sho
                     className={'button-email-form'}
                     variant={'dark'}
                     onClick={send}>
-                    Enviar
+                    {emailData.sendButton? 'please enter a send-button text on your dashboard':'Enviar'}
                 </Button>
                 <Button
                     className={'button-email-form'}
                     variant={'dark'}
                     onClick={back}>
-                    Regresar
+                    {emailData.backButton? 'please enter a back-button text on your dashboard':'Regresar'}
                 </Button>
             </div>
         </div>

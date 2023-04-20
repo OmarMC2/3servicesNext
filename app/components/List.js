@@ -5,7 +5,7 @@ import Button from "react-bootstrap/cjs/Button";
 const List = ({mps, dataUser,  setEmailData,  setShowFindForm, setShowEmailForm, tweet}) => {
 
     const tweetText = `.${mps.twitter} ${tweet}`
-    // console.log(tweetText)
+
     const click = e => {
         e.preventDefault()
         setEmailData({

@@ -195,12 +195,16 @@ display: flex;
     font-size: 25px;
   }
   .typ-content{
+    min-width: auto;
     display: flex;
     flex-direction: column;
     justify-content: center;
     padding:30px;
     row-gap: 20px;
 
+  }
+  h3 > .typ-content{
+    line-height: 1.7em !important;
   }
 }
 
@@ -233,11 +237,15 @@ display: flex;
     font-size: 25px;
   }
   .typ-content{
+    min-width: auto;
     display: flex;
     flex-direction: column;
     justify-content: center;
     padding:30px;
     row-gap: 20px;
-
+  }
+  h3 > .typ-content {
+    line-height: 1.7em !important;
+       
   }
 }
